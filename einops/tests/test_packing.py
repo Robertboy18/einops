@@ -161,11 +161,16 @@ def test_pack_unpack_with_numpy():
         # asking for more elements than available
         with pytest.raises(EinopsError):
             unpack(x, [[2], [4], [-1]], pattern)
-        # this one does not raise, because indexing x[2:1] just returns zero elements
-        # with pytest.raises(EinopsError):
-        #     unpack(x, [[2], [-1], [4]], pattern)
+        with pytest.raises(EinopsError):
+            unpack(x, [[2], [-1], [4]], pattern)
         with pytest.raises(EinopsError):
             unpack(x, [[-1], [1], [5]], pattern)
+        with pytest.raises(EinopsError):
+            unpack(x, [], pattern)
+        with pytest.raises(EinopsError):
+            unpack(x, [[-2]], pattern)
+        with pytest.raises(EinopsError):
+            unpack(x, [[-1, -1]], pattern)
 
         # all correct, -1 nested
         rs = unpack_and_pack(x, [[1, 2], [1, 1], [-1, 1]], pattern)
@@ -226,9 +231,8 @@ def test_pack_unpack_against_numpy():
             # asking for more elements than available
             with pytest.raises(EinopsError):
                 unpack(x, [[2], [4], [-1]], pattern)
-            # this one does not raise, because indexing x[2:1] just returns zero elements
-            # with pytest.raises(EinopsError):
-            #     unpack(x, [[2], [-1], [4]], pattern)
+            with pytest.raises(EinopsError):
+                unpack(x, [[2], [-1], [4]], pattern)
             with pytest.raises(EinopsError):
                 unpack(x, [[-1], [1], [5]], pattern)
 
@@ -298,6 +302,12 @@ def test_pack_unpack_array_api():
             [[1], [5], [-1]],
             [[1], [2, 3]],
             [[1], [5], [-1, 2]],
+            [[2], [-1], [4]],
+            [],
+            [[-2]],
+            [[-1, -1]],
         ]:
             with pytest.raises(EinopsError):
                 unpack(x_np, ps, pattern)
+            with pytest.raises(EinopsError):
+                AA.unpack(x_xp, ps, pattern)

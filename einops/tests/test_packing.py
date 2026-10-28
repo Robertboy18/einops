@@ -135,6 +135,43 @@ cases = [
 ]
 
 
+@pytest.mark.parametrize("case", cases, ids=lambda case: case.pattern)
+@pytest.mark.parametrize("packed_shapes", [[], ()])
+@pytest.mark.parametrize("use_array_api", [False, True])
+def test_unpack_rejects_empty_shapes_for_zero_length_axis(case, packed_shapes, use_array_api):
+    unpack_fn = unpack
+    if use_array_api:
+        if int(np.__version__.split(".")[0]) < 2:
+            pytest.skip("NumPy array API requires NumPy 2")
+        from einops import array_api
+
+        unpack_fn = array_api.unpack
+
+    shape = list(case.shape)
+    shape[case.dim()] = 0
+    with pytest.raises(EinopsError, match="empty"):
+        unpack_fn(np.empty(shape), packed_shapes, case.pattern)
+
+
+@pytest.mark.parametrize("use_array_api", [False, True])
+@pytest.mark.parametrize(
+    "axis_length, packed_shapes",
+    [(0, [(0,)]), (0, [(0,), (0,)]), (1, [()]), (1, [(), (0,)])],
+)
+def test_unpack_preserves_zero_length_and_scalar_outputs(axis_length, packed_shapes, use_array_api):
+    unpack_fn = unpack
+    if use_array_api:
+        if int(np.__version__.split(".")[0]) < 2:
+            pytest.skip("NumPy array API requires NumPy 2")
+        from einops import array_api
+
+        unpack_fn = array_api.unpack
+
+    outputs = unpack_fn(np.arange(axis_length), packed_shapes, "*")
+    assert [output.shape for output in outputs] == packed_shapes
+    assert sum(output.size for output in outputs) == axis_length
+
+
 def test_pack_unpack_with_numpy():
     case: UnpackTestCase
 

@@ -96,6 +96,9 @@ def prod(x: Shape) -> int:
 
 
 def _unpack_split_positions(packed_shapes: Sequence[Shape], axis_length: int, pattern: str) -> list[int]:
+    if len(packed_shapes) == 0:
+        raise EinopsError(f'Error during unpack(..., "{pattern}"): packed_shapes must be non-empty')
+
     lengths_of_composed_axes: list[int] = []
     n_unknown_axes = 0
     for p_shape in packed_shapes:
